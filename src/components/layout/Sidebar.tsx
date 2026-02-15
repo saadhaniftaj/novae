@@ -1,0 +1,115 @@
+'use client';
+
+import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  LayoutDashboard,
+  Bot,
+  Phone,
+  BarChart3,
+  Settings,
+  Users,
+  LogOut,
+  Plus
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+
+interface SidebarProps {
+  className?: string;
+}
+
+export function Sidebar({ className }: SidebarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Agents', href: '/dashboard/agents', icon: Bot },
+    { name: 'Numbers', href: '/dashboard/numbers', icon: Phone },
+    { name: 'Calls', href: '/dashboard/calls', icon: Phone },
+    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    ...(user?.role === 'ADMIN' ? [
+      { name: 'Users', href: '/dashboard/users', icon: Users },
+      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    ] : [])
+  ];
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
+  return (
+    <div className={`flex flex-col h-full vanguard-sidebar ${className}`}>
+      {/* Logo */}
+      <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200">
+        <div className="flex items-center space-x-2">
+          <span className="text-2xl font-bold text-gray-900" style={{ letterSpacing: '-0.03em' }}>NOVAE</span>
+        </div>
+      </div>
+
+      {/* User Info */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+            <span className="text-sm font-medium text-white">
+              {user?.email?.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {user?.email}
+            </p>
+            <p className="text-xs text-gray-500 capitalize">
+              {user?.role?.toLowerCase()}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-4 space-y-2">
+        {navigation.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+
+          return (
+            <button
+              key={item.name}
+              className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-all duration-200 ${isActive
+                  ? 'text-white bg-purple-600 shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              onClick={() => router.push(item.href)}
+            >
+              <Icon className="w-5 h-5 mr-3" />
+              <span className="font-medium">{item.name}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Quick Actions */}
+      <div className="p-4 border-t border-gray-200 space-y-2">
+        <button
+          className="w-full new-agent-button flex items-center justify-center text-white font-medium px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105"
+          onClick={() => router.push('/dashboard/agents/new')}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Agent
+        </button>
+
+        <button
+          className="w-full btn-secondary flex items-center justify-center"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
